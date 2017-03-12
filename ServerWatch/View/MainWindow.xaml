@@ -1,0 +1,39 @@
+﻿<Window x:Class="ServerWatch.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ServerWatch"
+        mc:Ignorable="d"
+        Title="MainWindow" SizeToContent="WidthAndHeight" Height="325.322" Width="600">
+
+    <Window.Resources>
+        <Style TargetType="DataGrid">
+            <!--<Setter Property="Margin" Value="0" />-->
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <DataGrid x:Name="dataGrid" AutoGenerateColumns="False"
+                  ItemsSource="{Binding Path=Results, UpdateSourceTrigger=PropertyChanged}" 
+                  CanUserAddRows="False" 
+                  IsReadOnly="True" 
+                  HeadersVisibility="Column" 
+                  CanUserReorderColumns="False" 
+                  Margin="0,0,0,20"
+                  >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Server" Binding="{Binding Name}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Game" Binding="{Binding Game}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Map" Binding="{Binding Map}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Players" Binding="{Binding Players}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Max" Binding="{Binding MaxPlayers}"></DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button x:Name="button" Command="{Binding ClickAdd}" CommandParameter="{Binding Text, ElementName=textBox}" IsDefault="{Binding IsFocused, ElementName=textBox}" Content="Add" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="75" Height="20"/>
+        <TextBox x:Name="textBox" Margin="0,0,75,0" Height="20" TextWrapping="Wrap" Text="New Server..." VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>
