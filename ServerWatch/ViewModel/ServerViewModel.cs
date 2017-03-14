@@ -17,6 +17,8 @@ namespace ServerWatch
         private IList<Server> m_Servers;
         private ServerInfoList m_Results;
 
+        private IDictionary<ServerInfoResult, Server> serverMap;
+
         private ICommand clickAdd;
 
         private string savepath;
@@ -26,7 +28,11 @@ namespace ServerWatch
         {
             m_Servers = new List<Server>();
             m_Results = new ServerInfoList();
+
+            serverMap = new Dictionary<ServerInfoResult, Server>();
+
             clickAdd = new ButtonCommand(this);
+            Row_DoubleClick = new DoubleClickCommand(this);
 
             savepath = Environment.ExpandEnvironmentVariables("%AppData%") + "\\ServerWatch";
             savefile = savepath + "\\serverlist.txt";
@@ -38,7 +44,8 @@ namespace ServerWatch
                 var serverAddresses = File.ReadAllLines(savefile);
                 foreach (var address in serverAddresses)
                 {
-                    Servers.Add(new Server(CreateIPEndPoint(address)));
+                    //Servers.Add(new Server(CreateIPEndPoint(address)));
+                    AddServer(address);
                 }
             }
             catch
@@ -67,6 +74,12 @@ namespace ServerWatch
             get { return clickAdd; }
         }
 
+        public ICommand Row_DoubleClick
+        {
+            get;
+            set;
+        }
+
         public void AddServer(string address)
         {
             Servers.Add(new Server(CreateIPEndPoint(address)));
@@ -93,15 +106,10 @@ namespace ServerWatch
             Results.Clear();
             foreach (var server in Servers)
             {
-                Results.Add(await server.GetServerInfo());
+                var result = await server.GetServerInfo();
+                Results.Add(result);
+                serverMap.Add(result, server);
             }
-        }
-
-        public async Task<ServerInfoResult> FetchServerAsync(string addr)
-        {
-            var server = new Server(CreateIPEndPoint(addr));
-            var info = await server.GetServerInfo();
-            return info;
         }
 
         public static IPEndPoint CreateIPEndPoint(string endPoint)
@@ -121,6 +129,9 @@ namespace ServerWatch
             return new IPEndPoint(ip, port);
         }
 
+
+        // UI Code
+
         public void TextBoxGotFocus(object sender, System.Windows.RoutedEventArgs e)
         {
             (sender as TextBox).Clear();
@@ -129,6 +140,36 @@ namespace ServerWatch
         public void TextBoxLostFocus(object sender, System.Windows.RoutedEventArgs e)
         {
             (sender as TextBox).Text = "Add Server...";
+        }
+
+
+        // Click Command Handlers
+
+        private class DoubleClickCommand : ICommand
+        {
+            private ServerViewModel vm;
+
+            public DoubleClickCommand(ServerViewModel viewmodel)
+            {
+                vm = viewmodel;
+            }
+
+            public bool CanExecute(object parameter)
+            {
+                return true;
+            }
+
+            public event EventHandler CanExecuteChanged;
+
+            public void Execute(object parameter)
+            {
+                var result = parameter as ServerInfoResult;
+
+                var server = vm.serverMap[result];
+                var address = "steam://connect/" + server.EndPoint.ToString();
+
+                System.Diagnostics.Process.Start(address);
+            }
         }
 
         private class ButtonCommand : ICommand

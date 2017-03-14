@@ -24,6 +24,7 @@
                   HeadersVisibility="Column" 
                   CanUserReorderColumns="False" 
                   Margin="0,0,0,20"
+                  IsSynchronizedWithCurrentItem="True"
                   >
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Server" Binding="{Binding Name}"></DataGridTextColumn>
@@ -32,6 +33,9 @@
                 <DataGridTextColumn Header="Players" Binding="{Binding Players}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Max" Binding="{Binding MaxPlayers}"></DataGridTextColumn>
             </DataGrid.Columns>
+            <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding Row_DoubleClick}" CommandParameter="{Binding Results/}" />
+            </DataGrid.InputBindings>
         </DataGrid>
         <Button x:Name="button" Command="{Binding ClickAdd}" CommandParameter="{Binding Text, ElementName=textBox}" IsDefault="{Binding IsFocused, ElementName=textBox}" Content="Add" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="75" Height="20"/>
         <TextBox x:Name="textBox" Margin="0,0,75,0" Height="20" TextWrapping="Wrap" Text="New Server..." VerticalAlignment="Bottom"/>
