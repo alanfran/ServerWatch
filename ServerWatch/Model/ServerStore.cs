@@ -19,7 +19,7 @@ namespace ServerWatch
         // map serverinfo -> server
         public IDictionary<ServerInfoResult, Server> Map { set; get; }
 
-        public ServerStore() : base()
+        public ServerStore()
         {
             Results = new ObservableCollection<ServerInfoResult>();
             Servers = new List<Server>();

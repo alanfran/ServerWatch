@@ -8,8 +8,12 @@
         Title="MainWindow" SizeToContent="WidthAndHeight" Height="325.322" Width="600">
 
     <Window.Resources>
-        <Style TargetType="DataGrid">
-            <!--<Setter Property="Margin" Value="0" />-->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu Visibility="Collapsed"/>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
