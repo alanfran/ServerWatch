@@ -12,27 +12,24 @@ using System.Windows.Controls;
 
 namespace ServerWatch
 {
-    class ServerViewModel
+    public class ServerViewModel
     {
-        private IList<Server> m_Servers;
-        private ServerInfoList m_Results;
+        public ServerStore ServerModel { set; get; }
 
-        private IDictionary<ServerInfoResult, Server> serverMap;
-
-        private ICommand clickAdd;
+        public ICommand ClickAdd { get; set; }
+        public ICommand Row_DoubleClick { get; set; }
+        public ICommand ClickDelete { get; set; }
 
         private string savepath;
         private string savefile;
 
         public ServerViewModel()
         {
-            m_Servers = new List<Server>();
-            m_Results = new ServerInfoList();
+            ServerModel = new ServerStore();
 
-            serverMap = new Dictionary<ServerInfoResult, Server>();
-
-            clickAdd = new ButtonCommand(this);
+            ClickAdd = new ButtonCommand(this);
             Row_DoubleClick = new DoubleClickCommand(this);
+            ClickDelete = new DeleteCommand(this);
 
             savepath = Environment.ExpandEnvironmentVariables("%AppData%") + "\\ServerWatch";
             savefile = savepath + "\\serverlist.txt";
@@ -44,8 +41,7 @@ namespace ServerWatch
                 var serverAddresses = File.ReadAllLines(savefile);
                 foreach (var address in serverAddresses)
                 {
-                    //Servers.Add(new Server(CreateIPEndPoint(address)));
-                    AddServer(address);
+                    ServerModel.AddServer(address);
                 }
             }
             catch
@@ -54,79 +50,35 @@ namespace ServerWatch
             }
 
             // query them...
-            QueryServers();
-        }
-
-        public IList<Server> Servers
-        {
-            get { return m_Servers; }
-            set { m_Servers = value; }
-        }
-
-        public ServerInfoList Results
-        {
-            get { return m_Results; }
-            set { m_Results = value; }
-        }
-
-        public ICommand ClickAdd
-        {
-            get { return clickAdd; }
-        }
-
-        public ICommand Row_DoubleClick
-        {
-            get;
-            set;
-        }
-
-        public void AddServer(string address)
-        {
-            Servers.Add(new Server(CreateIPEndPoint(address)));
+            ServerModel.QueryServers();
         }
 
         public void AddNewServer(string address)
         {
             // ignore if address already exists
-            if (Servers.Any(s => s.EndPoint.ToString() == address))
+            if (ServerModel.Servers.Any(s => s.EndPoint.ToString() == address))
             {
                 return;
             }
-            
-            AddServer(address);
-            QueryServers();
+
+            ServerModel.AddServer(address);
+            ServerModel.QueryServers();
 
             // save to file
-            var addresses = Servers.Select(x=>x.EndPoint.ToString()).ToArray();
+            var addresses = ServerModel.Servers.Select(x => x.EndPoint.ToString()).ToArray();
             File.WriteAllLines(savefile, addresses);
         }
 
-        public async void QueryServers()
+        public void RemoveServer(Server s)
         {
-            Results.Clear();
-            foreach (var server in Servers)
-            {
-                var result = await server.GetServerInfo();
-                Results.Add(result);
-                serverMap.Add(result, server);
-            }
-        }
+            // filter out the server from our list of servers
+            var filtered = ServerModel.Servers.Where(x => x.EndPoint != s.EndPoint);
 
-        public static IPEndPoint CreateIPEndPoint(string endPoint)
-        {
-            string[] ep = endPoint.Split(':');
-            if (ep.Length != 2) throw new FormatException("Invalid endpoint format");
-            IPAddress ip;
-            if (!IPAddress.TryParse(ep[0], out ip))
-            {
-                throw new FormatException("Invalid ip-adress");
-            }
-            int port;
-            if (!int.TryParse(ep[1], NumberStyles.None, NumberFormatInfo.CurrentInfo, out port))
-            {
-                throw new FormatException("Invalid port");
-            }
-            return new IPEndPoint(ip, port);
+            // write addresses to file
+            var addresses = filtered.Select(x => x.EndPoint.ToString()).ToArray();
+            File.WriteAllLines(savefile, addresses);
+
+            ServerModel.RemoveServer(s.EndPoint.ToString());
         }
 
 
@@ -165,7 +117,7 @@ namespace ServerWatch
             {
                 var result = parameter as ServerInfoResult;
 
-                var server = vm.serverMap[result];
+                var server = vm.ServerModel.Map[result];
                 var address = "steam://connect/" + server.EndPoint.ToString();
 
                 System.Diagnostics.Process.Start(address);
@@ -204,6 +156,32 @@ namespace ServerWatch
                 {
                    System.Windows.MessageBox.Show("Please enter a valid IP address. URLs are not yet supported.");
                 }
+            }
+        }
+
+        private class DeleteCommand : ICommand
+        {
+            private ServerViewModel vm;
+
+            public DeleteCommand(ServerViewModel viewmodel)
+            {
+                vm = viewmodel;
+            }
+
+            public bool CanExecute(object parameter)
+            {
+                return true;
+            }
+
+            public event EventHandler CanExecuteChanged;
+
+            public void Execute(object parameter)
+            {
+                var result = parameter as ServerInfoResult;
+
+                var server = vm.ServerModel.Map[result];
+
+                vm.RemoveServer(server);
             }
         }
     }

@@ -8,9 +8,10 @@ Add your favorite servers to the list to keep tabs on them.
 
 Double click a server to join.
 
+Right click a server for the option to delete it.
+
 TODO:
 
 * Add server refreshing at given intervals.
-* Add the ability to delete servers from the list.
 * Add notification capabilities.
 * Apply a theme to the UI.
